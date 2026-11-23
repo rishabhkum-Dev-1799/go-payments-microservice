@@ -42,7 +42,7 @@ func main() {
 	// Till here the program will be frezzed till we get the done signal which can be either from program termination or the interupption
 	<-ctx.Done()
 	logger.Info("shutting down gracefully")
-	// Creating the shutdown ctx With Timeout of the 10 second that within the 10 second the server should be stopped else the cancel will be called
+	// Creating the shutdown ctx With Timeout of the 10 second that within the 10 second the server should be stopped else the cancel will be called ...r
 	shutDownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
