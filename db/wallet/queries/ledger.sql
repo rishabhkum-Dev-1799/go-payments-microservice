@@ -8,7 +8,7 @@ RETURNING *;
 
 -- name: ListEntriesByAccount :many
 SELECT * from entries 
-WHERE account_id=@account_id
+WHERE account_id = @account_id
     AND id < @before_id
 ORDER BY id DESC
 LIMIT @page_size;

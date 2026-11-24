@@ -59,19 +59,20 @@ func (q *Queries) CreateTransaction(ctx context.Context, description string) (Tr
 
 const listEntriesByAccount = `-- name: ListEntriesByAccount :many
 SELECT id, transaction_id, account_id, direction, amount, currency, created_at from entries 
-WHERE account_id=@account_id
-    AND id < $1
+WHERE account_id = $1
+    AND id < $2
 ORDER BY id DESC
-LIMIT $2
+LIMIT $3
 `
 
 type ListEntriesByAccountParams struct {
-	BeforeID int64 `json:"before_id"`
-	PageSize int32 `json:"page_size"`
+	AccountID uuid.UUID `json:"account_id"`
+	BeforeID  int64     `json:"before_id"`
+	PageSize  int32     `json:"page_size"`
 }
 
 func (q *Queries) ListEntriesByAccount(ctx context.Context, arg ListEntriesByAccountParams) ([]Entry, error) {
-	rows, err := q.db.Query(ctx, listEntriesByAccount, arg.BeforeID, arg.PageSize)
+	rows, err := q.db.Query(ctx, listEntriesByAccount, arg.AccountID, arg.BeforeID, arg.PageSize)
 	if err != nil {
 		return nil, err
 	}
