@@ -24,7 +24,7 @@ type NewTransaction struct {
 // transaction is the posted journal entry along with its transactions
 type Transaction struct {
 	walletdb.Transaction
-	Entries []Entry `json:entries`
+	Entries []Entry `json:"entries"`
 }
 
 // inTx is the function which will run the transactions of queries in the single pool connection so rolling back will be easy , in this function it will return nil and if some error occurs then the transaction will be roll backed

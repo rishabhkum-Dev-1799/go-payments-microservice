@@ -9,10 +9,29 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/joho/godotenv"
+	"github.com/rishabhkum-Dev-1799/go-payments/internal/platform/postgres"
 )
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	err := godotenv.Load()
+	if err != nil {
+		logger.Error("Error loading .env file")
+		os.Exit(1)
+	}
+	dsn := os.Getenv("WALLET_DATABASE_URL")
+	if dsn == "" {
+		logger.Error("Unable to start the wallet service as WALLET_DATABASE_URL was not found in the env file")
+		os.Exit(1)
+	}
+	pool, err := postgres.NewPool(context.Background(), dsn)
+	if err != nil {
+		logger.Error("connection to postgres failed", "err", err)
+		os.Exit(1)
+	}
+	logger.Info("connection to wallet db is successfully", "max Connections", pool.Config().MaxConns)
 	// Intializing the mux http handler
 	mux := http.NewServeMux()
 	// Using the http server mux as the handler function ...r
@@ -20,6 +39,17 @@ func main() {
 		logger.Info("heath check", "remote", r.RemoteAddr)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"status":"Ok"}` + "\n"))
+	})
+	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+		w.Header().Set("Content-Type", "application/json")
+		if err := pool.Ping(ctx); err != nil {
+			logger.Error("initialize:unable to ping the database", "err", err)
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write([]byte(`{"status":"unavailable"}` + "\n"))
+		}
+		w.Write([]byte(`{"status":"ready"}` + "\n"))
 	})
 
 	// Now creating the server for the server handler ...r
@@ -50,4 +80,8 @@ func main() {
 		logger.Error("shutdown failed", "err", err)
 	}
 	logger.Info("Server Stopped")
+}
+
+func initialiseDB() {
+
 }
