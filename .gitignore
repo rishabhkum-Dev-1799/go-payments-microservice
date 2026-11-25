@@ -27,3 +27,4 @@ coverage.html
 .DS_Store
 Thumbs.db
 commands.md
+Makefile

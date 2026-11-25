@@ -81,7 +81,3 @@ func main() {
 	}
 	logger.Info("Server Stopped")
 }
-
-func initialiseDB() {
-
-}
